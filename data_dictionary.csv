@@ -1,0 +1,43 @@
+Table,Column,Data_Type,Description
+dim_product,SKU_ID,Text,"Unique product code. Prefix = family (SK Skincare, MU Makeup, FG Fragrance, HC Haircare, SC Suncare, GS Gift Sets)"
+dim_product,SKU_Name,Text,Product name
+dim_product,Product_Family,Text,One of 6 product families
+dim_product,Wholesale_Price_EUR,Decimal,Price QWERTY Logistics charges retailers (EUR per unit)
+dim_product,Unit_Cost_EUR,Decimal,Purchase cost per unit (EUR); used to value inventory and safety stock
+dim_product,Supplier_Lead_Time_Months,Decimal,Replenishment lead time from the supplier in months
+dim_product,Target_Service_Level,Decimal,Target cycle service level used for safety stock (0.95 = 95%)
+dim_market,Market_ID,Text,"Market code: FR, DE, UK"
+dim_market,Market_Name,Text,Country name
+dim_market,Region,Text,Regional grouping
+dim_market,Planning_Team,Text,Demand planning team responsible for the market
+dim_date,Date,Date,"One row per day, 1 Jan 2023 - 31 Dec 2027 (key for relationships)"
+dim_date,Year / Quarter / Month_Number / Month_Name / Month_Short,Various,Calendar attributes
+dim_date,Year_Month,Text,"Label such as 2026-10 (sort by Year_Month_Sort)"
+dim_date,Year_Month_Sort,Whole number,"Sort key such as 202610"
+dim_date,Month_Start,Date,First day of the month; use on chart axes
+dim_date,Is_Closed_Month,Whole number,1 if the month has actual sales (Jan 2023 - Oct 2026)
+dim_date,Is_Last_12_Closed_Months,Whole number,1 for Nov 2025 - Oct 2026 (the evaluation window)
+dim_date,Is_Forward_Month,Whole number,1 for Nov 2026 - Apr 2027 (forward forecast horizon)
+dim_forecast_version,Version_ID,Text,"NAIVE, STAT or FINAL"
+dim_forecast_version,Version_Name,Text,Display name of the forecast version
+dim_forecast_version,Version_Sort,Whole number,Sort key (1-3)
+dim_forecast_version,Description,Text,How the version is produced
+fact_sales,Month_Start,Date,Sales month (first day of month)
+fact_sales,SKU_ID,Text,Product key
+fact_sales,Market_ID,Text,Market key
+fact_sales,Units_Sold,Whole number,Actual demand (units shipped to retailers)
+fact_sales,Net_Revenue_EUR,Decimal,Net revenue in EUR
+fact_sales,Promo_Flag,Whole number,1 if the SKU was on promotion in that market and month
+fact_forecast,Target_Month,Date,Month being forecast
+fact_forecast,Forecast_Created_Month,Date,Month in which the forecast was produced
+fact_forecast,Lag_Months,Whole number,Months between creation and target (1 for all history; 1-6 for forward months)
+fact_forecast,SKU_ID,Text,Product key
+fact_forecast,Market_ID,Text,Market key
+fact_forecast,Version_ID,Text,Forecast version key
+fact_forecast,Forecast_Units,Whole number,Forecast quantity in units
+fact_forecast,Actual_Units,Whole number,ADDED IN POWER QUERY (merge with fact_sales); blank for forward months
+fact_forecast,Is_Evaluated,Whole number,ADDED IN POWER QUERY: 1 if Lag_Months = 1 and an actual exists
+fact_inventory,Snapshot_Date,Date,Inventory snapshot date (31 Oct 2026)
+fact_inventory,SKU_ID,Text,Product key
+fact_inventory,Market_ID,Text,Market key
+fact_inventory,On_Hand_Units,Whole number,Units in stock at the snapshot date (no open purchase orders in this dataset)
