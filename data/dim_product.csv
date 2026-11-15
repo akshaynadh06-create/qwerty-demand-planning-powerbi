@@ -1,0 +1,81 @@
+SKU_ID,SKU_Name,Product_Family,Wholesale_Price_EUR,Unit_Cost_EUR,Supplier_Lead_Time_Months,Target_Service_Level
+SK-001,Clear Day Cream 50ml,Skincare,43.8,18.4,1.0,0.95
+SK-002,Radiance Toner 200ml,Skincare,50.57,24.57,1.0,0.95
+SK-003,Vital Day Cream 50ml,Skincare,44.38,17.52,1.0,0.95
+SK-004,Clear Toner 200ml,Skincare,43.61,20.19,1.5,0.95
+SK-005,Hydra Eye Gel 15ml,Skincare,52.17,21.77,1.0,0.95
+SK-006,Radiance Day Cream 50ml,Skincare,25.18,10.8,1.0,0.95
+SK-007,Hydra Cleanser 150ml,Skincare,44.84,15.78,1.0,0.95
+SK-008,Radiance SPF Moisturiser 50ml,Skincare,23.79,10.45,1.0,0.95
+SK-009,Pure Cleanser 150ml,Skincare,28.5,10.87,1.5,0.95
+SK-010,Clear SPF Moisturiser 50ml,Skincare,42.3,16.99,1.5,0.95
+SK-011,Vital Eye Gel 15ml,Skincare,34.47,16.72,1.0,0.95
+SK-012,Vital Cleanser 150ml,Skincare,26.77,12.18,1.0,0.95
+SK-013,Calm Cleanser 150ml,Skincare,41.1,15.55,1.0,0.95
+SK-014,Vital SPF Moisturiser 50ml,Skincare,42.97,17.44,1.5,0.95
+SK-015,Radiance Cleanser 150ml,Skincare,37.27,15.67,1.0,0.95
+SK-016,Vital Mask 75ml,Skincare,33.73,11.81,1.5,0.95
+SK-017,Hydra Mask 75ml,Skincare,38.37,15.31,1.5,0.95
+SK-018,Radiance Night Cream 50ml,Skincare,55.71,27.77,1.0,0.95
+SK-019,Radiance Serum 30ml,Skincare,31.12,14.3,1.5,0.95
+SK-020,Calm Eye Gel 15ml,Skincare,49.84,24.61,1.0,0.95
+MU-001,Bold Primer,Makeup,28.63,10.71,1.0,0.95
+MU-002,Bold Mascara,Makeup,18.93,7.43,1.0,0.95
+MU-003,Velvet Eyeliner,Makeup,24.62,8.96,1.0,0.95
+MU-004,Velvet Lip Gloss,Makeup,24.74,10.89,1.5,0.95
+MU-005,Studio Blush,Makeup,36.71,17.91,1.0,0.95
+MU-006,Velvet Mascara,Makeup,33.63,14.99,1.5,0.95
+MU-007,Velvet Blush,Makeup,37.52,14.44,1.5,0.95
+MU-008,Studio Eyeliner,Makeup,14.04,6.21,1.5,0.95
+MU-009,Velvet Concealer,Makeup,32.98,11.88,1.0,0.95
+MU-010,Nude Blush,Makeup,28.85,11.49,1.5,0.95
+MU-011,Nude Mascara,Makeup,30.06,11.1,1.0,0.95
+MU-012,Glow Mascara,Makeup,12.52,5.42,1.0,0.95
+MU-013,Studio Lipstick,Makeup,25.48,11.44,1.5,0.95
+MU-014,Bold Eyeliner,Makeup,19.56,7.77,1.0,0.95
+MU-015,Velvet Foundation,Makeup,29.9,14.14,1.0,0.95
+MU-016,Studio Mascara,Makeup,38.75,17.62,1.5,0.95
+MU-017,Studio Primer,Makeup,16.47,7.37,1.5,0.95
+MU-018,Nude Primer,Makeup,20.31,9.21,1.5,0.95
+FG-001,Fleur EDT 100ml,Fragrance,72.75,26.57,2.0,0.95
+FG-002,Azur EDP 100ml,Fragrance,57.32,21.04,3.0,0.95
+FG-003,Fleur EDP 100ml,Fragrance,48.08,18.76,2.0,0.95
+FG-004,Cedre EDP 100ml,Fragrance,86.87,33.52,2.0,0.95
+FG-005,Nuit EDP 50ml,Fragrance,103.18,42.66,2.0,0.95
+FG-006,Nuit EDT 100ml,Fragrance,84.34,35.06,3.0,0.95
+FG-007,Nuit EDP 100ml,Fragrance,102.51,41.5,2.0,0.95
+FG-008,Nuit EDT 50ml,Fragrance,42.44,15.62,3.0,0.95
+FG-009,Fleur EDT 50ml,Fragrance,56.63,22.67,2.0,0.95
+FG-010,Ambre EDT 100ml,Fragrance,114.9,41.49,3.0,0.95
+FG-011,Cedre Body Mist 150ml,Fragrance,53.43,25.2,3.0,0.95
+FG-012,Azur EDT 50ml,Fragrance,97.5,46.56,3.0,0.95
+FG-013,Nuit Body Mist 150ml,Fragrance,62.04,27.56,2.0,0.95
+FG-014,Ambre EDP 50ml,Fragrance,86.17,38.46,2.0,0.95
+HC-001,Silk Conditioner 250ml,Haircare,23.2,8.74,1.0,0.95
+HC-002,Curl Conditioner 250ml,Haircare,12.77,5.95,1.0,0.95
+HC-003,Repair Hair Mask 200ml,Haircare,9.92,4.58,1.0,0.95
+HC-004,Volume Hair Oil 100ml,Haircare,20.63,7.46,1.0,0.95
+HC-005,Volume Shampoo 250ml,Haircare,23.01,11.09,1.0,0.95
+HC-006,Volume Hair Mask 200ml,Haircare,10.99,4.53,1.0,0.95
+HC-007,Repair Shampoo 250ml,Haircare,11.35,4.43,1.0,0.95
+HC-008,Curl Shampoo 250ml,Haircare,14.12,5.99,1.0,0.95
+HC-009,Silk Hair Mask 200ml,Haircare,16.12,6.66,1.0,0.95
+HC-010,Volume Conditioner 250ml,Haircare,16.92,8.4,1.0,0.95
+HC-011,Silk Shampoo 250ml,Haircare,22.43,9.77,1.0,0.95
+HC-012,Repair Conditioner 250ml,Haircare,13.01,5.13,1.0,0.95
+SC-001,Beach After-Sun 200ml,Suncare,18.58,7.72,2.0,0.95
+SC-002,Solaire Kids SPF50 150ml,Suncare,29.89,12.64,2.0,0.95
+SC-003,Beach SPF30 Lotion 200ml,Suncare,12.45,5.28,2.0,0.95
+SC-004,Solaire SPF30 Lotion 200ml,Suncare,14.12,5.44,2.0,0.95
+SC-005,Beach Kids SPF50 150ml,Suncare,14.92,5.47,2.0,0.95
+SC-006,Solaire After-Sun 200ml,Suncare,25.32,10.21,2.0,0.95
+SC-007,Solaire SPF50 Spray 150ml,Suncare,29.76,12.67,2.0,0.95
+SC-008,Beach SPF50 Lotion 200ml,Suncare,21.27,7.5,2.0,0.95
+GS-001,Signature Mini Collection,Gift Sets,64.83,23.14,3.0,0.95
+GS-002,Noel Mini Collection,Gift Sets,89.97,41.44,3.0,0.95
+GS-003,Noel Skincare Trio,Gift Sets,67.53,23.74,3.0,0.95
+GS-004,Discovery Fragrance Coffret,Gift Sets,53.2,21.9,3.0,0.95
+GS-005,Prestige Mini Collection,Gift Sets,44.39,16.31,3.0,0.95
+GS-006,Discovery Makeup Box,Gift Sets,83.84,40.41,3.0,0.95
+GS-007,Signature Makeup Box,Gift Sets,89.1,38.16,3.0,0.95
+GS-008,Discovery Mini Collection,Gift Sets,57.94,23.35,3.0,0.95

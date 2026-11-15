@@ -1,0 +1,4 @@
+Version_ID,Version_Name,Version_Sort,Description
+NAIVE,Seasonal Naive,1,Same month last year. Benchmark that any real forecast must beat.
+STAT,Statistical (Holt-Winters),2,"Damped Holt-Winters exponential smoothing, parameters tuned on 2024."
+FINAL,Final Consensus,3,Statistical forecast after planner / sales adjustments (S&OP consensus).

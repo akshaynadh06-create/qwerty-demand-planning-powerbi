@@ -1,0 +1,347 @@
+// =====================================================================
+// QWERTY Logistics - Demand Forecast Accuracy & S&OP
+// DAX measures and calculated columns (copy one block at a time)
+// Author: Akshaynadh Ajithkumar
+// All measures live in a table called _Measures.
+// =====================================================================
+
+
+// ---------- 1. BASE MEASURES -----------------------------------------
+
+Actual Units =
+SUM ( fact_sales[Units_Sold] )
+
+Net Revenue =
+SUM ( fact_sales[Net_Revenue_EUR] )
+
+Selected Version =
+SELECTEDVALUE ( dim_forecast_version[Version_ID], "FINAL" )
+
+Forecast Units =
+VAR v = [Selected Version]
+RETURN
+    CALCULATE (
+        SUM ( fact_forecast[Forecast_Units] ),
+        dim_forecast_version[Version_ID] = v
+    )
+
+
+// ---------- 2. ACCURACY MEASURES (evaluated lag-1 rows only) ----------
+
+Actual Units (Eval) =
+VAR v = [Selected Version]
+RETURN
+    CALCULATE (
+        SUM ( fact_forecast[Actual_Units] ),
+        fact_forecast[Is_Evaluated] = 1,
+        dim_forecast_version[Version_ID] = v
+    )
+
+Forecast Units (Eval) =
+VAR v = [Selected Version]
+RETURN
+    CALCULATE (
+        SUM ( fact_forecast[Forecast_Units] ),
+        fact_forecast[Is_Evaluated] = 1,
+        dim_forecast_version[Version_ID] = v
+    )
+
+Abs Error =
+VAR v = [Selected Version]
+RETURN
+    CALCULATE (
+        SUMX (
+            fact_forecast,
+            ABS ( fact_forecast[Forecast_Units] - fact_forecast[Actual_Units] )
+        ),
+        fact_forecast[Is_Evaluated] = 1,
+        dim_forecast_version[Version_ID] = v
+    )
+
+WMAPE % =
+DIVIDE ( [Abs Error], [Actual Units (Eval)] )
+
+Forecast Accuracy % =
+IF ( NOT ISBLANK ( [WMAPE %] ), MAX ( 0, 1 - [WMAPE %] ) )
+
+Bias % =
+DIVIDE ( [Forecast Units (Eval)] - [Actual Units (Eval)], [Actual Units (Eval)] )
+
+MAPE % =
+VAR v = [Selected Version]
+RETURN
+    CALCULATE (
+        AVERAGEX (
+            FILTER ( fact_forecast, fact_forecast[Actual_Units] > 0 ),
+            DIVIDE (
+                ABS ( fact_forecast[Forecast_Units] - fact_forecast[Actual_Units] ),
+                fact_forecast[Actual_Units]
+            )
+        ),
+        fact_forecast[Is_Evaluated] = 1,
+        dim_forecast_version[Version_ID] = v
+    )
+
+Evaluated Periods =
+VAR v = [Selected Version]
+RETURN
+    CALCULATE (
+        COUNTROWS ( fact_forecast ),
+        fact_forecast[Is_Evaluated] = 1,
+        dim_forecast_version[Version_ID] = v
+    )
+
+Tracking Signal =
+// Average of the per-series (SKU x Market) tracking signals. Outside -4..+4 = persistent bias.
+AVERAGEX (
+    CROSSJOIN ( VALUES ( dim_product[SKU_ID] ), VALUES ( dim_market[Market_ID] ) ),
+    VAR e   = CALCULATE ( [Forecast Units (Eval)] - [Actual Units (Eval)] )
+    VAR mad = CALCULATE ( DIVIDE ( [Abs Error], [Evaluated Periods] ) )
+    RETURN DIVIDE ( e, mad )
+)
+
+Last Closed Month =
+CALCULATE ( MAX ( fact_sales[Month_Start] ), REMOVEFILTERS () )
+
+Accuracy Last Month =
+VAR lm = [Last Closed Month]
+RETURN
+    CALCULATE (
+        [Forecast Accuracy %],
+        REMOVEFILTERS ( dim_date ),
+        dim_date[Month_Start] = lm
+    )
+
+Accuracy Previous Month =
+VAR pm = EDATE ( [Last Closed Month], -1 )
+RETURN
+    CALCULATE (
+        [Forecast Accuracy %],
+        REMOVEFILTERS ( dim_date ),
+        dim_date[Month_Start] = pm
+    )
+
+Accuracy MoM Change (pts) =
+[Accuracy Last Month] - [Accuracy Previous Month]
+
+
+// ---------- 3. FORECAST VALUE ADDED -----------------------------------
+
+WMAPE Naive =
+CALCULATE (
+    [WMAPE %],
+    REMOVEFILTERS ( dim_forecast_version ),
+    dim_forecast_version[Version_ID] = "NAIVE"
+)
+
+WMAPE Stat =
+CALCULATE (
+    [WMAPE %],
+    REMOVEFILTERS ( dim_forecast_version ),
+    dim_forecast_version[Version_ID] = "STAT"
+)
+
+WMAPE Final =
+CALCULATE (
+    [WMAPE %],
+    REMOVEFILTERS ( dim_forecast_version ),
+    dim_forecast_version[Version_ID] = "FINAL"
+)
+
+FVA Stat vs Naive (pts) =
+[WMAPE Naive] - [WMAPE Stat]
+
+FVA Final vs Stat (pts) =
+[WMAPE Stat] - [WMAPE Final]
+
+FVA Final vs Naive (pts) =
+[WMAPE Naive] - [WMAPE Final]
+
+
+// ---------- 4. SAFETY STOCK & INVENTORY -------------------------------
+
+Error Std Dev (Units) =
+CALCULATE (
+    STDEVX.P ( fact_forecast, fact_forecast[Forecast_Units] - fact_forecast[Actual_Units] ),
+    fact_forecast[Is_Evaluated] = 1,
+    REMOVEFILTERS ( dim_forecast_version ),
+    dim_forecast_version[Version_ID] = "FINAL",
+    REMOVEFILTERS ( dim_date ),
+    dim_date[Is_Last_12_Closed_Months] = 1
+)
+
+Safety Stock Units =
+SUMX (
+    CROSSJOIN ( VALUES ( dim_product[SKU_ID] ), VALUES ( dim_market[Market_ID] ) ),
+    VAR sd = [Error Std Dev (Units)]
+    VAR lt = CALCULATE ( MAX ( dim_product[Supplier_Lead_Time_Months] ) )
+    VAR sl = CALCULATE ( MAX ( dim_product[Target_Service_Level] ) )
+    RETURN
+        NORM.S.INV ( sl ) * sd * SQRT ( lt )
+)
+
+Safety Stock Value =
+SUMX (
+    CROSSJOIN ( VALUES ( dim_product[SKU_ID] ), VALUES ( dim_market[Market_ID] ) ),
+    [Safety Stock Units] * CALCULATE ( MAX ( dim_product[Unit_Cost_EUR] ) )
+)
+
+On Hand Units =
+SUM ( fact_inventory[On_Hand_Units] )
+
+On Hand Value =
+SUMX (
+    fact_inventory,
+    fact_inventory[On_Hand_Units] * RELATED ( dim_product[Unit_Cost_EUR] )
+)
+
+Avg Monthly Fcst Next 3M =
+DIVIDE (
+    CALCULATE (
+        SUM ( fact_forecast[Forecast_Units] ),
+        REMOVEFILTERS ( dim_forecast_version ),
+        dim_forecast_version[Version_ID] = "FINAL",
+        REMOVEFILTERS ( dim_date ),
+        dim_date[Is_Forward_Month] = 1,
+        fact_forecast[Lag_Months] <= 3
+    ),
+    3
+)
+
+Months of Cover =
+DIVIDE ( [On Hand Units], [Avg Monthly Fcst Next 3M] )
+
+Stock Status =
+// Use at SKU x Market level (table rows)
+VAR c = [Months of Cover]
+VAR lt = MAX ( dim_product[Supplier_Lead_Time_Months] )
+RETURN
+    SWITCH (
+        TRUE (),
+        ISBLANK ( c ), BLANK (),
+        c < lt, "Stock-out risk",
+        c > lt + 3, "Excess",
+        "Healthy"
+    )
+
+SKU-Markets at Risk =
+COUNTROWS (
+    FILTER (
+        CROSSJOIN ( VALUES ( dim_product[SKU_ID] ), VALUES ( dim_market[Market_ID] ) ),
+        [Months of Cover] < CALCULATE ( MAX ( dim_product[Supplier_Lead_Time_Months] ) )
+    )
+)
+
+SKU-Markets in Excess =
+COUNTROWS (
+    FILTER (
+        CROSSJOIN ( VALUES ( dim_product[SKU_ID] ), VALUES ( dim_market[Market_ID] ) ),
+        [Months of Cover] > CALCULATE ( MAX ( dim_product[Supplier_Lead_Time_Months] ) ) + 3
+    )
+)
+
+Excess Stock Value =
+SUMX (
+    CROSSJOIN ( VALUES ( dim_product[SKU_ID] ), VALUES ( dim_market[Market_ID] ) ),
+    VAR lt = CALCULATE ( MAX ( dim_product[Supplier_Lead_Time_Months] ) )
+    VAR excessUnits = MAX ( 0, [On Hand Units] - ( lt + 3 ) * [Avg Monthly Fcst Next 3M] )
+    RETURN
+        excessUnits * CALCULATE ( MAX ( dim_product[Unit_Cost_EUR] ) )
+)
+
+
+// ---------- 5. CALCULATED COLUMNS in dim_product (ABC / XYZ) ----------
+// Window: last 12 closed months = Nov 2025 - Oct 2026
+
+Revenue L12M =
+VAR s = dim_product[SKU_ID]
+RETURN
+    SUMX (
+        FILTER (
+            fact_sales,
+            fact_sales[SKU_ID] = s
+                && fact_sales[Month_Start] >= DATE ( 2025, 11, 1 )
+                && fact_sales[Month_Start] <= DATE ( 2026, 10, 1 )
+        ),
+        fact_sales[Net_Revenue_EUR]
+    )
+
+Revenue Cum Share =
+VAR r = dim_product[Revenue L12M]
+RETURN
+    DIVIDE (
+        SUMX (
+            FILTER ( dim_product, dim_product[Revenue L12M] >= r ),
+            dim_product[Revenue L12M]
+        ),
+        SUM ( dim_product[Revenue L12M] )
+    )
+
+ABC Class =
+IF ( dim_product[Revenue Cum Share] <= 0.80, "A",
+    IF ( dim_product[Revenue Cum Share] <= 0.95, "B", "C" ) )
+
+Demand CoV L12M =
+VAR s = dim_product[SKU_ID]
+VAR rowsL12M =
+    FILTER (
+        fact_sales,
+        fact_sales[SKU_ID] = s
+            && fact_sales[Month_Start] >= DATE ( 2025, 11, 1 )
+            && fact_sales[Month_Start] <= DATE ( 2026, 10, 1 )
+    )
+VAR monthly =
+    GROUPBY (
+        rowsL12M,
+        fact_sales[Month_Start],
+        "MonthUnits", SUMX ( CURRENTGROUP (), fact_sales[Units_Sold] )
+    )
+RETURN
+    DIVIDE ( STDEVX.P ( monthly, [MonthUnits] ), AVERAGEX ( monthly, [MonthUnits] ) )
+
+XYZ Class =
+IF ( dim_product[Demand CoV L12M] <= 0.25, "X",
+    IF ( dim_product[Demand CoV L12M] <= 0.50, "Y", "Z" ) )
+
+ABC-XYZ =
+dim_product[ABC Class] & dim_product[XYZ Class]
+
+
+// ---------- 6. TEXT, COLOUR AND HELPER MEASURES ------------------------
+
+Exec Summary Text =
+VAR acc  = [Forecast Accuracy %]
+VAR bias = [Bias %]
+VAR fva  = [FVA Final vs Stat (pts)]
+VAR famTable =
+    ADDCOLUMNS ( VALUES ( dim_product[Product_Family] ), "@w", [WMAPE %] )
+VAR worstFam = MAXX ( TOPN ( 1, famTable, [@w], DESC ), dim_product[Product_Family] )
+VAR worstW   = MAXX ( TOPN ( 1, famTable, [@w], DESC ), [@w] )
+RETURN
+    "Over the last 12 closed months the consensus forecast reached "
+        & FORMAT ( acc, "0.0%" ) & " accuracy with a "
+        & IF ( bias > 0, "positive", "negative" ) & " bias of "
+        & FORMAT ( ABS ( bias ), "0.0%" )
+        & IF ( bias > 0, " (over-forecasting). ", " (under-forecasting). " )
+        & "Planner adjustments " & IF ( fva >= 0, "improved", "reduced" ) & " accuracy by "
+        & FORMAT ( ABS ( fva ) * 100, "0.0" ) & " points versus the statistical forecast. "
+        & "Least accurate family: " & worstFam & " (WMAPE " & FORMAT ( worstW, "0.0%" ) & ")."
+
+Stock Status Colour =
+SWITCH ( [Stock Status],
+    "Stock-out risk", "#F6C9CD",
+    "Excess",         "#FBE3B8",
+    "Healthy",        "#CDEBD6" )
+
+FVA Colour =
+IF ( [FVA Final vs Stat (pts)] < 0, "#D64550", "#3A8E5C" )
+
+Selected SKU =
+IF (
+    HASONEVALUE ( dim_product[SKU_Name] ),
+    VALUES ( dim_product[SKU_Name] ),
+    "All SKUs"
+)
+
+Promo Months =
+SUM ( fact_sales[Promo_Flag] )
